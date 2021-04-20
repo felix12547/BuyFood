@@ -62,14 +62,15 @@
                         comboDetail.push(newdata);
                     }
                 }
-
+                var moveIndex = 0;
                 for (var p = 0; p < comboDetail.length; p++) {
                     var issue = comboDetail[p].cProduct.cIsOnSaleId == 3 ? `(停止販售)` : ``
                     txt += `<tr><td>${comboDetail[p].cProduct.cProductName}${issue}
                                         <td>${comboDetail[p].Count}
                                         <td>${comboDetail[p].cProduct.cPrice}
-                                        <td><div class="btn btn-success btn-sm" onclick="cwc_addProducttoCart(cwc_ComboDetails[${i}].comboDetails[${p}].cProduct)">加入購物車</div>
+                                        <td><div class="btn btn-success btn-sm" onclick="cwc_addProducttoCart(cwc_ComboDetails[${i}].comboDetails[${moveIndex}].cProduct)">加入購物車</div>
                                         `;
+                    moveIndex += comboDetail[p].Count;
                 }
                 txt += `</tbody></thead></table></div>`;
             }
@@ -93,10 +94,10 @@ function cwc_EditCombo(comboID, comboName, memberID) {
                                             <div style="width:50%; height:inherit; float:left">
                                                 <div style="height:50px">
                                                     <span>餐點類型</span>
-                                                    <select class="inline" id="cwc_select_Category"></select>
-                                                    <label><input id="cwc_checkbox_b" class="inline" type="checkbox" />7:00~10:30
-                                                    <label><input id="cwc_checkbox_l" class="inline" type="checkbox"  />10:30~14:30
-                                                    <label><input id="cwc_checkbox_d" class="inline" type="checkbox" />14:30~21:00
+                                                    <select class="inline" id="cwc_select_Category"></select></br>
+                                                    <label><input id="cwc_checkbox_b" class="inline" type="checkbox" />5:00~10:00
+                                                    <label><input id="cwc_checkbox_l" class="inline" type="checkbox"  />10:00~17:00
+                                                    <label><input id="cwc_checkbox_d" class="inline" type="checkbox" />17:00~5:00
                                                 </div>
 
                                              </div>`;
@@ -147,15 +148,27 @@ function cwc_EditCombo(comboID, comboName, memberID) {
 function cwc_deleteCombo(comboID, memberID) {
     $(`#cwc_combo_tr_${comboID}`).remove();
     $(`#cwc_comboDetail_tr_${comboID}`).remove();
-    var comboCount = $("#mycombo").length - 1;
+    var comboCount = $("#mycombo")[0].childNodes[1].childNodes.length == 0 ? 0 :
+        $("#mycombo")[0].childNodes[1].childNodes.length / 2;
+    $(`#cwc_howManyCombo`).html(comboCount)
+
+    if (comboCount== 0) {
+        var txt = `<div style="width:100%;height:100%;position:relative;display:flex;align-items:center;text-align:center">
+                                        <div style="width:100%">
+                                            <h1>自訂專屬自己的套餐</h1>
+                                            <button class="btn btn-success" style="font-size:50px;width:250px;height:100" onclick="cwc_EditCombo(0,'套餐${comboCount + 1}',${memberID})">自訂套餐</button>
+                                         </div>
+                                  </div>`;
+        $("#head_cwc").html("");
+        $("#content_cwc").html(txt);
+    }
+
     $("#cwc_btn_addCombo").attr("onclick", `cwc_EditCombo(0,'套餐${comboCount + 1}',${memberID})`)
     $.ajax({
         url: `/Combo/deleteCombo?id=${comboID}`,
         success: function (data) {
             updateData(memberID);
             updateLayoutCombo();
-            if (comboCount == 0)
-                cwc_showCombo(memberID);
         }
     });
 }
